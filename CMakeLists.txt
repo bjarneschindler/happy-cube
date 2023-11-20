@@ -16,7 +16,5 @@ find_package(OpenGL REQUIRED)
 add_executable(cg src/main.cpp glad/src/gl.c)
 target_link_libraries(cg OpenGL::GL glfw)
 
-configure_file(shaders/FragmentShaderStart.glsl shaders/FragmentShaderStart.glsl COPYONLY)
-configure_file(shaders/VertexShaderStart.glsl shaders/VertexShaderStart.glsl COPYONLY)
 configure_file(shaders/DiffuseLightComponent.vert shaders/DiffuseLightComponent.vert COPYONLY)
 configure_file(shaders/DiffuseLightComponent.frag shaders/DiffuseLightComponent.frag COPYONLY)
