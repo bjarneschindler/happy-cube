@@ -268,9 +268,9 @@ int main() {
         mat4x4 m;
         mat4x4_identity(m);
 
-        auto light_x{static_cast<float>(3 * M_PI * 30 / 360 * sin((float) glfwGetTime()))};
-        auto light_y{static_cast<float>(3 * M_PI * 30 / 360 * sin((float) glfwGetTime()))};
-        auto light_z{static_cast<float>(3 * M_PI * 30 / 360 * sin((float) glfwGetTime()))};
+        auto light_x{static_cast<float>(5 * M_PI * 30 / 360 * sin((float) glfwGetTime()))};
+        auto light_y{static_cast<float>(4 * M_PI * 25 / 360 * cos((float) glfwGetTime()))};
+        auto light_z{static_cast<float>(3 * M_PI * 15 / 360 * sin((float) glfwGetTime()))};
 
         auto rotate_x{static_cast<float>(3 * M_PI * 5 / 360 * sin((float) glfwGetTime()))};
         auto rotate_y{static_cast<float>(3 * M_PI * 5 / 360 * glfwGetTime())};
@@ -282,7 +282,7 @@ int main() {
 
         glUniform1f(light_position_x_access, -light_x);
         glUniform1f(light_position_y_access, light_y);
-        glUniform1f(light_position_z_access, -light_z);
+        glUniform1f(light_position_z_access, light_z);
 
         glUniform1f(ambient_access, ambient_factor);
         glUniform1f(diffuse_access, diffuse_factor);
