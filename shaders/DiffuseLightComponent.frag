@@ -7,7 +7,6 @@ struct Light {
     int shininess;
     float y;
     float x;
-    float z;
 };
 
 in vec3 color_for_fragment_shader;

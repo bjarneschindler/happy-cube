@@ -4,9 +4,9 @@
 #include <iostream>
 #include <array>
 #include <iomanip>
+#include <fstream>
 
 #include "linmath.h"
-#include "LadeShader.h"
 
 #define VERTEX_SHADER_PATH "shaders/DiffuseLightComponent.vert"
 #define FRAGMENT_SHADER_PATH "shaders/DiffuseLightComponent.frag"
@@ -75,7 +75,7 @@ static int shininess = 27;
 static void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods) {
     // Taste A erhöht den Ambient-Faktor, Shift+A verringert ihn
     if (key == GLFW_KEY_A && action != GLFW_PRESS)
-        ambient_factor = mods == GLFW_MOD_SHIFT ? ambient_factor + .1f : ambient_factor - .1f;
+        ambient_factor = mods == GLFW_MOD_SHIFT ? ambient_factor + .025f : ambient_factor - .025f;
     // Taste S erhöht den die Shininess, Shift+S verringert ihn
     if (key == GLFW_KEY_S && action != GLFW_PRESS)
         shininess = mods == GLFW_MOD_SHIFT ? shininess + 1 : shininess - 1;
@@ -103,7 +103,7 @@ static void scale_cube() {
 }
 
 static void build_outlines() {
-    std::array<u_short, GRID_VERTICES_COUNT> edge_indexes{
+    std::array < u_short, GRID_VERTICES_COUNT > edge_indexes{
             {
                     0, 1, 1, 7, 7, 4, 4, 0, // TOP
                     2, 3, 3, 5, 5, 6, 6, 2, // BOTTOM
@@ -125,7 +125,7 @@ static void build_outlines() {
 
 static void build_cube() {
     const u_short vertices_per_side{6}, sides{6};
-    std::array<vec3, sides> normal_vectors{{{1, 0, 0}, {-1, 0, 0}, {0, 1, 0}, {0, -1, 0}, {0, 0, 1}, {0, 0, -1}}};
+    std::array < vec3, sides > normal_vectors{{{1, 0, 0}, {-1, 0, 0}, {0, 1, 0}, {0, -1, 0}, {0, 0, 1}, {0, 0, -1}}};
     std::array<std::array<u_short, vertices_per_side>, sides> side_vertex_indexes{{{0, 1, 2, 0, 3, 2},
                                                                                    {4, 5, 6, 4, 7, 6},
                                                                                    {0, 1, 7, 0, 4, 7},
@@ -142,6 +142,32 @@ static void build_cube() {
             vertices[insert_index++] = Vertex{vertex, normal_vector};
         }
     }
+}
+
+char *read_file_contents(const char *filename) {
+    std::cout << "Reading shader " << filename << std::endl;
+    std::ifstream file(filename, std::ios::binary | std::ios::ate);
+
+    if (!file.is_open()) {
+        std::cerr << "File not found!" << std::endl;
+        perror(filename);
+        return nullptr;
+    }
+
+    std::streamsize fileSize = file.tellg();
+    file.seekg(0, std::ios::beg);
+
+    char *buffer = new char[fileSize + 1];
+    file.read(buffer, fileSize);
+    buffer[fileSize] = '\0';
+
+    if (!file) {
+        std::cerr << "Failed to read file: " << filename << std::endl;
+        delete[] buffer;
+        return nullptr;
+    }
+
+    return buffer;
 }
 
 int main() {
@@ -181,7 +207,7 @@ int main() {
     // Vertex-Shader erstellen und kompilieren. Der Vertex-Shader ist ein
     // Programm, das für jeden Vertex ausgeführt wird. Er bestimmt die
     // Position eines Vertex.
-    char *vertex_shader_code = readTextFileIntoString(VERTEX_SHADER_PATH);
+    char *vertex_shader_code = read_file_contents(VERTEX_SHADER_PATH);
     if (vertex_shader_code == nullptr) exit(EXIT_FAILURE);
     GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vertex_shader, 1, &vertex_shader_code, nullptr);
@@ -190,7 +216,7 @@ int main() {
     // Fragment-Shader erstellen und kompilieren. Der Fragment-Shader ist ein
     // Programm, das für jeden Pixel ausgeführt wird. Er bestimmt die Farbe
     // eines Pixels.
-    char *fragment_shader_code = readTextFileIntoString(FRAGMENT_SHADER_PATH);
+    char *fragment_shader_code = read_file_contents(FRAGMENT_SHADER_PATH);
     if (fragment_shader_code == nullptr) exit(EXIT_FAILURE);
     GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
     glShaderSource(fragment_shader, 1, &fragment_shader_code, nullptr);
@@ -214,7 +240,6 @@ int main() {
 
     auto light_position_x_access{glGetUniformLocation(program, "light_params.x")};
     auto light_position_y_access{glGetUniformLocation(program, "light_params.y")};
-    auto light_position_z_access{glGetUniformLocation(program, "light_params.z")};
 
     auto color_access{glGetAttribLocation(program, "color")};
     auto position_access{glGetAttribLocation(program, "position")};
@@ -268,9 +293,8 @@ int main() {
         mat4x4 m;
         mat4x4_identity(m);
 
-        auto light_x{static_cast<float>(5 * M_PI * 30 / 360 * sin((float) glfwGetTime()))};
-        auto light_y{static_cast<float>(4 * M_PI * 25 / 360 * cos((float) glfwGetTime()))};
-        auto light_z{static_cast<float>(3 * M_PI * 15 / 360 * sin((float) glfwGetTime()))};
+        auto light_x{static_cast<float>(5 * CUBE_SCALE * M_PI * 60 / 360 * sin((float) glfwGetTime()))};
+        auto light_y{static_cast<float>(5 * CUBE_SCALE * M_PI * 30 / 360 * cos((float) glfwGetTime()))};
 
         auto rotate_x{static_cast<float>(3 * M_PI * 5 / 360 * sin((float) glfwGetTime()))};
         auto rotate_y{static_cast<float>(3 * M_PI * 5 / 360 * glfwGetTime())};
@@ -282,7 +306,6 @@ int main() {
 
         glUniform1f(light_position_x_access, -light_x);
         glUniform1f(light_position_y_access, light_y);
-        glUniform1f(light_position_z_access, light_z);
 
         glUniform1f(ambient_access, ambient_factor);
         glUniform1f(diffuse_access, diffuse_factor);
